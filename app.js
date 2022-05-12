@@ -6,6 +6,15 @@ const jwt = require('jsonwebtoken');
 
 const app = express();
 
+const logger = (req, res, next) => {
+    console.log((new Date()).toISOString().split("T").join(" ").slice(0,-1) + " " + req.originalUrl + " " + req.ip);
+    next();
+}
+
+let sessionLength = "1h"; //Duration of user session before expiration of token (must be in hours!)
+
+app.use(logger);
+
 app.use(express.json());
 
 const User = require("./model/user");
@@ -37,13 +46,16 @@ app.post("/register", async (req, res) => {
             {user_id: user._id, email},
             process.env.TOKEN_KEY,
             {
-                expiresIn: "2h",
+                expiresIn: sessionLength,
             }
         );
 
         user.token = token;
 
-        res.status(201).json(user);
+        res.status(201).json({
+            "user": user,
+            "expiresIn": Number(sessionLength.slice(0,-1))*3600*1000,
+        });
     } catch (err) {
         console.log(err);
     }
@@ -64,13 +76,16 @@ app.post("/login", async (req, res) => {
                 { user_id: user.id, email },
                 process.env.TOKEN_KEY,
                 {
-                    expiresIn: "2h",
+                    expiresIn: sessionLength,
                 }
             );
 
             user.token = token;
 
-            res.status(200).json(user);
+            res.status(200).json({
+                "user": user,
+                "expiresIn": Number(sessionLength.slice(0,-1))*3600*1000,
+            });
         }
         res.status(400).send("Invalid Credentials");
     } catch (err) {
@@ -81,7 +96,7 @@ app.post("/login", async (req, res) => {
 const auth = require("./middleware/auth");
 
 app.get("/welcome", auth, (req, res) => {
-    res.status(200).send("Welcome!!");
+    res.status(200).send("Welcome!!"+JSON.stringify(req.user));
 })
 
 module.exports = app;
