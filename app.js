@@ -3,8 +3,11 @@ require("./config/database").connect();
 const bcrypt = require("bcryptjs/dist/bcrypt");
 const express = require("express");
 const jwt = require('jsonwebtoken');
+var cors = require('cors');
 
 const app = express();
+
+app.use(cors());
 
 const logger = (req, res, next) => {
     console.log((new Date()).toISOString().split("T").join(" ").slice(0,-1) + " " + req.originalUrl + " " + req.ip);
@@ -67,6 +70,7 @@ app.post("/login", async (req, res) => {
 
         if(!(email && password)){
             res.status(400).send("All inputs are required");
+            return
         }
 
         const user = await User.findOne({ email });
@@ -81,13 +85,16 @@ app.post("/login", async (req, res) => {
             );
 
             user.token = token;
+            
 
             res.status(200).json({
                 "user": user,
                 "expiresIn": Number(sessionLength.slice(0,-1))*3600*1000,
             });
+        } else {
+            console.log("Invalid Credentials");
+            res.status(400).send("Invalid Credentials");
         }
-        res.status(400).send("Invalid Credentials");
     } catch (err) {
         console.log(err);
     }
