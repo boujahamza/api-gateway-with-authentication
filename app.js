@@ -19,7 +19,7 @@ const logger = (req, res, next) => {
 app.use(logger);
 
 // Request forwarding
-const fileHandlerRoute = require("./routers/gatewayRouter");
+const fileHandlerRoute = require("./routers/fileHandlerRouter");
 app.use("/file", fileHandlerRoute);
 
 
