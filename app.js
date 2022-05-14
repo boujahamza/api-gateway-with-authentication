@@ -3,20 +3,28 @@ require("./config/database").connect();
 const bcrypt = require("bcryptjs/dist/bcrypt");
 const express = require("express");
 const jwt = require('jsonwebtoken');
-var cors = require('cors');
+const cors = require('cors');
 
 const app = express();
 
+//Cors rule
 app.use(cors());
 
+
+//Logging middleware
 const logger = (req, res, next) => {
     console.log((new Date()).toISOString().split("T").join(" ").slice(0,-1) + " " + req.originalUrl + " " + req.ip);
     next();
 }
-
-let sessionLength = "1h"; //Duration of user session before expiration of token (must be in hours!)
-
 app.use(logger);
+
+// Request forwarding
+const fileHandlerRoute = require("./routers/gatewayRouter");
+app.use("/file", fileHandlerRoute);
+
+
+//Duration of user session before expiration of token (must be in hours!)
+let sessionLength = "1h"; 
 
 app.use(express.json());
 
