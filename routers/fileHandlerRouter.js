@@ -11,7 +11,9 @@ router.get("/", (req, res, next) => {
     fileHandlerProxy(req, res, next);
 })
 
-router.post("/", (req, res, next) => {
+const auth = require("../middleware/auth");
+
+router.post("/", auth, (req, res, next) => {
     fileHandlerProxy(req, res, next);
 })
 
